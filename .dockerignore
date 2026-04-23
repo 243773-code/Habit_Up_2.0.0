@@ -1,0 +1,15 @@
+# Build output
+build/
+.gradle/
+
+# IDE and OS files
+.idea/
+*.iml
+.DS_Store
+
+# Git
+.git/
+.gitignore
+
+# Docs
+*.md
