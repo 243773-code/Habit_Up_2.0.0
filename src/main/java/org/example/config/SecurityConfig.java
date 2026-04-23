@@ -28,66 +28,40 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 🔥 NUEVO: Activamos CORS para permitir peticiones desde tu frontend en Vercel
                 .cors(Customizer.withDefaults())
-
-                // 1. Desactivamos CSRF para pruebas en Insomnia y WebSockets
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // 2. IMPORTANTE: Ajuste para que SockJS funcione
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                 )
-
-                // 3. Definición de permisos de acceso
                 .authorizeHttpRequests(auth -> auth
-                        // Endpoints públicos para desarrollo
-                        .requestMatchers("/api/users/**").permitAll()
-                        .requestMatchers("/api/habits/**").permitAll()
-                        .requestMatchers("/api/achievements/**").permitAll()
-                        .requestMatchers("/api/dashboard/**").permitAll()
-                        .requestMatchers("/api/posts/**").permitAll()
-                        .requestMatchers("/api/relapses/**").permitAll()
-
-                        // 🔥 SOS: Botón de pánico
-                        .requestMatchers("/api/sos/**").permitAll()
-
-                        // 🔥 COMMENTS: Permitimos la interacción social
-                        .requestMatchers("/api/comments/**").permitAll()
-
-                        // 🔥 Endpoint de WebSockets
+                        // ✅ CORREGIDO: Ahora acepta rutas con y sin /api para evitar el error 403
+                        .requestMatchers("/users/**", "/api/users/**").permitAll()
+                        .requestMatchers("/habits/**", "/api/habits/**").permitAll()
+                        .requestMatchers("/achievements/**", "/api/achievements/**").permitAll()
+                        .requestMatchers("/dashboard/**", "/api/dashboard/**").permitAll()
+                        .requestMatchers("/posts/**", "/api/posts/**").permitAll()
+                        .requestMatchers("/relapses/**", "/api/relapses/**").permitAll()
+                        .requestMatchers("/sos/**", "/api/sos/**").permitAll()
+                        .requestMatchers("/comments/**", "/api/comments/**").permitAll()
                         .requestMatchers("/ws-habitup/**").permitAll()
-
-                        // Todo lo demás bloqueado
                         .anyRequest().authenticated()
                 )
-
-                // 4. Desactivamos login por formulario y Basic Auth
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }
 
-    // 🔥 NUEVO: Configuración global de CORS detallada
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Usamos OriginPatterns con "*" para permitir cualquier URL (localhost o Vercel) sin romper los WebSockets
+        // Permite todo para que Vercel no tenga problemas de CORS
         configuration.setAllowedOriginPatterns(List.of("*"));
-
-        // Métodos HTTP permitidos
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // Headers permitidos
         configuration.setAllowedHeaders(List.of("*"));
-
-        // Permitir envío de credenciales (super importante para que los WebSockets no fallen)
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Aplicamos esta regla a todas las rutas de la API
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
