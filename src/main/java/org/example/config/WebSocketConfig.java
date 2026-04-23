@@ -12,17 +12,19 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        // Prefijo para los mensajes que el servidor envía a los clientes (Topic de SOS)
         config.enableSimpleBroker("/topic");
-        // Prefijo para los mensajes que el cliente envía al servidor
         config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // El punto de entrada donde se conectará el Frontend de Alex
         registry.addEndpoint("/ws-habitup")
-                .setAllowedOriginPatterns("*")
-                .withSockJS(); // Soporte para navegadores viejos
+                // 🔥 ACTUALIZADO: Agregamos el dominio de Vercel para que no te bloquee
+                .setAllowedOriginPatterns(
+                        "https://habitup.devpaulvelasco.com",
+                        "https://*.vercel.app",   // <--- Esto permite cualquier subdominio de Vercel
+                        "http://localhost:5173"
+                )
+                .withSockJS();
     }
 }
